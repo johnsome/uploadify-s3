@@ -20,7 +20,7 @@ module UploadifyS3Helper
   				'cancelImg'      : '/images/uploadify/cancel.png',
   				'folder'         : '#{upload_path}',
   				'auto'           : true,
-  				'multi'          : false,
+  				'multi'          : true,
   				'buttonText'		 : '#{options[:button_text]}',
   				'sizeLimit'			 : '#{max_filesize}',
   				'fileDesc'		   : '#{options[:file_desc]}',				
@@ -37,21 +37,23 @@ module UploadifyS3Helper
 						$('#{options[:file_input_selector]}').hide();
 						return true;  				  
   				},
-  				'onError' 			 : function (a, b, c, d) {
-  					if (d.info == 201) {
+  				'onError' 			 : function (event, queueID, fileObj, response) {
+  					if (response.info == 201) {
   					  fileInfo = {
-  					    'name' : c.name,
-  					    'size' : c.size,
-  					    'type' : c.type,
-  					    'url'  : '#{bucket_url}#{upload_path}/' + c.name
+  					    'name' : fileObj.name,
+  					    'size' : fileObj.size,
+  					    'type' : fileObj.type,
+  					    'url'  : '#{bucket_url}#{upload_path}/' + fileObj.name
   					  };  					  
   					  var onsucc = (#{options[:on_success]});
   					  onsucc(fileInfo);
-  						$('#{options[:file_input_selector]}').hide();
+              jQuery("#file_uploader" + queueID + " .percentage").text(' - Completed');
+  						jQuery("#file_uploader" + queueID).fadeOut(250, function() { jQuery(this).remove()});  						
+              return false;  // dont continue with default uploadify error handling b/c we handled it  					  
   					} else {
               var onerror = (#{options[:on_error]});
               if (onerror) {
-                onerror(d.type, d.text);                
+                onerror(response.type, response.text);                
               }              
   					}
   				},				
@@ -107,7 +109,7 @@ module UploadifyS3Helper
    end
  
   def load_config
-    YAML.load_file("#{RAILS_ROOT}/config/amazon_s3.yml")
+    YAML.load_file("#{RAILS_ROOT}/config/amazon_s3.yml")[RAILS_ENV]
   end
   
   def aws_access_key
