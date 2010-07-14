@@ -25,6 +25,9 @@ module UploadifyS3Helper
   				'sizeLimit'			 : '#{max_filesize}',
   				'fileDesc'		   : '#{options[:file_desc]}',				
   				'fileExt'				 : '#{options[:file_ext]}',
+  				'onAllComplete' : function (event, data) {
+            $('#{options[:file_input_selector]}').uploadifyClearQueue();
+          },
   				'onComplete'     : function(event, queueID, fileObj, response) {
             fileInfo = {
 					    'name' : fileObj.name,
@@ -47,8 +50,8 @@ module UploadifyS3Helper
   					  };  					  
   					  var onsucc = (#{options[:on_success]});
   					  onsucc(fileInfo);
-              jQuery("#file_uploader" + queueID + " .percentage").text(' - Completed');
-  						jQuery("#file_uploader" + queueID).fadeOut(250, function() { jQuery(this).remove()});  						
+              jQuery("#{options[:file_input_selector]}" + queueID + " .percentage").text(' - Completed');
+  						jQuery("#{options[:file_input_selector]}" + queueID).fadeOut(250, function() { jQuery(this).remove()});  						
               return false;  // dont continue with default uploadify error handling b/c we handled it  					  
   					} else {
               var onerror = (#{options[:on_error]});
